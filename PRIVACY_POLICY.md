@@ -26,8 +26,8 @@ The Extension requests the following permissions solely for its core functionali
 |-----------|---------|
 | `storage` | Saves your preferences (enabled/disabled state, selected User-Agent) locally in Chrome's extension storage |
 | `declarativeNetRequest` | Modifies HTTP headers (User-Agent, Content-Type) to emulate an HbbTV device |
-| `scripting` | Injects the OIPF emulation layer into web pages so HbbTV applications function correctly |
-| `host_permissions (<all_urls>)` | Required to intercept and emulate HbbTV objects on any page — HbbTV test pages can be hosted on any domain |
+| `declarativeNetRequestWithHostAccess` | Allows those header modifications to apply on the sites you visit (in combination with host permissions) |
+| `host_permissions (<all_urls>)` | Required to inject the OIPF emulation layer and emulate HbbTV objects on any page — HbbTV test pages can be hosted on any domain |
 
 ## Local Storage
 
