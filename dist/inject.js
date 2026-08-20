@@ -41803,36 +41803,32 @@ function createVideoBroadcast(objectElement) {
  * Emulates the OIPF oipfCapabilities object.
  */
 
+// Mirrors the structure real TVs expose (and what feature detectors query):
+// lowercase transport="dash" (attribute selectors are case-sensitive) and
+// PlayReady (urn:dvb:casystemid:19219) declared on the DASH video profiles,
+// plus the same profiles without DRM.
 var CAPABILITIES_XML = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<profilelist>',
-  '  <ui_profile name="OITF_HD_UIPROF+TRICKMODE+DVB_T+DVB_T2+DVB_S+DVB_S2+DVB_C"',
-  '    xmlns="urn:hbbtv:config:oitf:oitfCapabilities:2017-1">',
+  '  <ui_profile name="OITF_HD_UIPROF+TRICKMODE+DVB_T+DVB_T2+DVB_S+DVB_S2+DVB_C">',
   '    <ext>',
-  '      <parentalcontrol>true</parentalcontrol>',
-  '      <clientMetadata>true</clientMetadata>',
+  '      <parentalcontrol schemes="dvb-si">true</parentalcontrol>',
+  '      <clientMetadata type="dvb-si">true</clientMetadata>',
   '      <temporalClipping>true</temporalClipping>',
   '    </ext>',
-  '    <drm>',
-  '      <drm DRMSystemID="urn:dvb:casystemid:19219">',
-  '        <format>CI_Plus_1.3</format>',
-  '      </drm>',
-  '    </drm>',
-  '    <video_profile name="MP4_AVC_SD_25_HEAAC" type="video/mp4"',
-  '      transport="DASH" DRMSystemID="" />',
-  '    <video_profile name="MP4_AVC_HD_25_HEAAC" type="video/mp4"',
-  '      transport="DASH" DRMSystemID="" />',
-  '    <video_profile name="MP4_AVC_SD_25_HEAAC_EBUTTD" type="video/mp4"',
-  '      transport="DASH" DRMSystemID="" />',
-  '    <video_profile name="MP4_AVC_HD_25_HEAAC_EBUTTD" type="video/mp4"',
-  '      transport="DASH" DRMSystemID="" />',
-  '    <video_profile name="TS_AVC_SD_25_HEAAC" type="video/mpeg"',
-  '      transport="MPEG2_TS" DRMSystemID="" />',
-  '    <video_profile name="TS_AVC_HD_25_HEAAC" type="video/mpeg"',
-  '      transport="MPEG2_TS" DRMSystemID="" />',
-  '    <audio_profile name="MP4_HEAAC" type="audio/mp4" transport="DASH" DRMSystemID="" />',
-  '    <audio_profile name="MP3" type="audio/mpeg" transport="" DRMSystemID="" />',
   '  </ui_profile>',
+  '  <video_profile name="MP4_AVC_SD_25_HEAAC" type="video/mp4"',
+  '    transport="dash" DRMSystemID="urn:dvb:casystemid:19219" />',
+  '  <video_profile name="MP4_AVC_HD_25_HEAAC" type="video/mp4"',
+  '    transport="dash" DRMSystemID="urn:dvb:casystemid:19219" />',
+  '  <video_profile name="MP4_AVC_SD_25_HEAAC" type="video/mp4" transport="dash" />',
+  '  <video_profile name="MP4_AVC_HD_25_HEAAC" type="video/mp4" transport="dash" />',
+  '  <video_profile name="MP4_AVC_SD_25_HEAAC_EBUTTD" type="video/mp4" transport="dash" />',
+  '  <video_profile name="MP4_AVC_HD_25_HEAAC_EBUTTD" type="video/mp4" transport="dash" />',
+  '  <video_profile name="TS_AVC_SD_25_HEAAC" type="video/mpeg" />',
+  '  <video_profile name="TS_AVC_HD_25_HEAAC" type="video/mpeg" />',
+  '  <audio_profile name="MPEG1_L3" type="audio/mpeg" />',
+  '  <audio_profile name="HEAAC" type="audio/mp4" />',
   '</profilelist>'
 ].join('\n');
 
@@ -42013,6 +42009,50 @@ var KEYSET_MASKS = (/* unused pure expression or super */ null && ({
 
   // Install VK_ key constants globally
   installKeyConstants();
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // navigator.userAgent spoofing. The service worker rewrites the HTTP
+  // header via declarativeNetRequest, but page JS (HbbTV feature detectors)
+  // reads navigator.userAgent — so it must be overridden here too.
+  // Must match DEFAULT_STATE.userAgent in background/service-worker.js;
+  // content-main.js sends the live state right after (see state bridge below).
+  // ─────────────────────────────────────────────────────────────────────────
+  var DEFAULT_TV_UA = 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.5) AppleWebKit/537.36 (KHTML, like Gecko) HbbTV/1.6.1 (+DRM+DL+PVR;Samsung;SmartTV2022;T-KTM2DEUC-1490.3;;) 85.0.4183.93/6.5 TV Safari/537.36 Chrome/85.0.4183.93';
+  var originalUA = navigator.userAgent;
+  var spoofedUA = DEFAULT_TV_UA;
+  var uaSpoofEnabled = true;
+
+  try {
+    Object.defineProperty(navigator, 'userAgent', {
+      get: function () { return uaSpoofEnabled ? spoofedUA : originalUA; },
+      configurable: true
+    });
+    Object.defineProperty(navigator, 'appVersion', {
+      get: function () {
+        return (uaSpoofEnabled ? spoofedUA : originalUA).replace(/^Mozilla\//, '');
+      },
+      configurable: true
+    });
+  } catch (e) {
+    console.warn('[HbbTV Emulator] Could not override navigator.userAgent:', e);
+  }
+
+  // State bridge: content-main.js (isolated world) writes the extension state
+  // as a DOM attribute and fires this event — JS objects don't cross worlds,
+  // DOM attributes do.
+  function readEmulatorStateAttr() {
+    var raw = document.documentElement.getAttribute('data-hbbtv-emulator-state');
+    if (!raw) return;
+    try {
+      var st = JSON.parse(raw);
+      if (typeof st.userAgent === 'string' && st.userAgent) spoofedUA = st.userAgent;
+      uaSpoofEnabled = st.enabled !== false;
+      console.log('[HbbTV Emulator] State applied. UA spoofing',
+        uaSpoofEnabled ? 'on' : 'off');
+    } catch (e) {}
+  }
+  document.addEventListener('hbbtv-emulator-state', readEmulatorStateAttr);
+  readEmulatorStateAttr();
 
   // MIME types we handle
   var HBBTV_VIDEO_TYPES = [

@@ -21,6 +21,50 @@ import { installKeyConstants } from '../emulators/keyset.js';
   // Install VK_ key constants globally
   installKeyConstants();
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // navigator.userAgent spoofing. The service worker rewrites the HTTP
+  // header via declarativeNetRequest, but page JS (HbbTV feature detectors)
+  // reads navigator.userAgent — so it must be overridden here too.
+  // Must match DEFAULT_STATE.userAgent in background/service-worker.js;
+  // content-main.js sends the live state right after (see state bridge below).
+  // ─────────────────────────────────────────────────────────────────────────
+  var DEFAULT_TV_UA = 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.5) AppleWebKit/537.36 (KHTML, like Gecko) HbbTV/1.6.1 (+DRM+DL+PVR;Samsung;SmartTV2022;T-KTM2DEUC-1490.3;;) 85.0.4183.93/6.5 TV Safari/537.36 Chrome/85.0.4183.93';
+  var originalUA = navigator.userAgent;
+  var spoofedUA = DEFAULT_TV_UA;
+  var uaSpoofEnabled = true;
+
+  try {
+    Object.defineProperty(navigator, 'userAgent', {
+      get: function () { return uaSpoofEnabled ? spoofedUA : originalUA; },
+      configurable: true
+    });
+    Object.defineProperty(navigator, 'appVersion', {
+      get: function () {
+        return (uaSpoofEnabled ? spoofedUA : originalUA).replace(/^Mozilla\//, '');
+      },
+      configurable: true
+    });
+  } catch (e) {
+    console.warn('[HbbTV Emulator] Could not override navigator.userAgent:', e);
+  }
+
+  // State bridge: content-main.js (isolated world) writes the extension state
+  // as a DOM attribute and fires this event — JS objects don't cross worlds,
+  // DOM attributes do.
+  function readEmulatorStateAttr() {
+    var raw = document.documentElement.getAttribute('data-hbbtv-emulator-state');
+    if (!raw) return;
+    try {
+      var st = JSON.parse(raw);
+      if (typeof st.userAgent === 'string' && st.userAgent) spoofedUA = st.userAgent;
+      uaSpoofEnabled = st.enabled !== false;
+      console.log('[HbbTV Emulator] State applied. UA spoofing',
+        uaSpoofEnabled ? 'on' : 'off');
+    } catch (e) {}
+  }
+  document.addEventListener('hbbtv-emulator-state', readEmulatorStateAttr);
+  readEmulatorStateAttr();
+
   // MIME types we handle
   var HBBTV_VIDEO_TYPES = [
     'video/broadcast',

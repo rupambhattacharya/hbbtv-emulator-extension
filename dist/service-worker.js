@@ -6,7 +6,10 @@
 
 const DEFAULT_STATE = {
   enabled: true,
-  userAgent: 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.5) AppleWebKit/537.36 (KHTML, like Gecko) 85.0.4183.93/6.5 TV Safari/537.36 HbbTV/1.6.1 (+DRM+DL+PVR;Samsung;SmartTV2022;T-KTM2DEUC-1490.3;;)',
+  // Ordered so vendor feature detectors match: the HbbTV/x.y.z (...) token
+  // must appear BEFORE the trailing Chrome/WebKit token (see e.g. the
+  // vendor feature detection Samsung pattern).
+  userAgent: 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.5) AppleWebKit/537.36 (KHTML, like Gecko) HbbTV/1.6.1 (+DRM+DL+PVR;Samsung;SmartTV2022;T-KTM2DEUC-1490.3;;) 85.0.4183.93/6.5 TV Safari/537.36 Chrome/85.0.4183.93',
   userAgentPreset: 'samsung-tizen-2022',
   debugOverlay: false
 };

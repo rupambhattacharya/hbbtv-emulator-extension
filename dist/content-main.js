@@ -6,7 +6,25 @@
  */
 
 (function () {
+  publishStateToPage();
   setupKeyCodeInterception();
+
+  /**
+   * Hand the extension state (enabled flag, selected User-Agent) to
+   * inject.js in the MAIN world via a DOM attribute + event.
+   */
+  function publishStateToPage() {
+    try {
+      chrome.runtime.sendMessage({ type: 'GET_STATE' }, function (state) {
+        if (!state) return;
+        document.documentElement.setAttribute('data-hbbtv-emulator-state',
+          JSON.stringify({ enabled: state.enabled, userAgent: state.userAgent }));
+        document.dispatchEvent(new Event('hbbtv-emulator-state'));
+      });
+    } catch (e) {
+      // Extension context may be gone (e.g. after reload); page keeps defaults
+    }
+  }
 
   function setupKeyCodeInterception() {
     var KEY_MAP = {
