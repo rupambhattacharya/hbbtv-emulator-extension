@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HbbTV Emulator — Reviewer Test Page</title>
+  <style>
+    #video-container, #video-broadcast, #container { left: 0; position: absolute; top: 0; }
+    body { background: #000; color: white; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+    #container { width: 1280px; height: 720px; background: none; }
+    #video-broadcast { width: 1280px; height: 720px; }
+    #debug { padding: 20px 40px; background-color: rgba(18, 23, 30, 0.9); }
+    #status { font-weight: bold; }
+    .ok { color: #2cc46c; }
+    .fail { color: #ff5a5a; }
+    li { line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div id="video-container">
+    <object id="video-broadcast" type="video/broadcast"></object>
+  </div>
+
+  <div id="container">
+    <div id="debug">
+      <h3>HbbTV Emulator — Test Page</h3>
+      <p id="status">Checking for the extension…</p>
+      <p>This page uses the HbbTV/OIPF <code>&lt;object&gt;</code> video API, as an
+         HbbTV television application would. Plain Chrome cannot play it; with the
+         HbbTV Emulator extension installed, the video below starts playing
+         (click the page once to unmute).</p>
+      <ul id="info_list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Mirrors how HbbTV apps start playback: create an OIPF <object>,
+    // set .data, call .play(1). No player library is embedded in this page —
+    // playback only works if the extension provides the OIPF emulation.
+    var videoUrl = new URLSearchParams(location.search).get('u') ||
+      'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
+
+    function log(k, v) {
+      var li = document.createElement('li');
+      li.textContent = k + ' - ' + v;
+      document.getElementById('info_list').appendChild(li);
+    }
+
+    var container = document.getElementById('video-container');
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    var videoObj = document.createElement('object');
+    videoObj.setAttribute('type', 'application/dash+xml');
+    videoObj.setAttribute('id', 'video-broadcast');
+    container.appendChild(videoObj);
+
+    var video = document.getElementById('video-broadcast');
+    var statusEl = document.getElementById('status');
+    var states = ['stopped', 'playing', 'paused', 'connecting', 'buffering', 'finished', 'error'];
+
+    if (typeof video.play === 'function') {
+      statusEl.textContent = 'Extension detected — starting OIPF video playback';
+      statusEl.className = 'ok';
+      log('Video URL', videoUrl);
+      video.data = videoUrl;
+      video.onPlayStateChange = function () {
+        log('playState', states[video.playState] || video.playState);
+      };
+      video.play(1);
+    } else {
+      statusEl.textContent = 'Extension NOT detected — object.play is not a function, video cannot start';
+      statusEl.className = 'fail';
+    }
+  </script>
+</body>
+</html>
