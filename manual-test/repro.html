@@ -2,9 +2,10 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>HbbTV Emulator repro — example videoplayer layout</title>
+  <title>HbbTV Emulator repro — videoplayer layout</title>
   <style>
-    /* Mirrors hbbtv-test.example.com main.css + videoplayer css */
+    /* Mirrors the layout typical HbbTV videoplayer test pages use:
+       absolutely positioned video container + app overlay */
     #oipf-objects, #video-container, #video-broadcast, #container {
       left: 0; position: absolute; top: 0;
     }
@@ -33,7 +34,7 @@
     // Mirrors the test page's loadVideo() flow
     var params = new URLSearchParams(location.search);
     var videoUrl = params.get('u') ||
-      'https://s3-eu-west-1.amazonaws.com/example-video/Dash/mp4dash-multiperiod/2_SAMPLE_XX000000_20/2_SAMPLE_XX000000_20-800.mp4';
+      'https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd';
     var videoType = /\.(mpd|dash)(\?|$)/i.test(videoUrl) ? 'application/dash+xml' : 'video/mp4';
 
     function log(k, v) {

@@ -70,6 +70,10 @@ npm run dev
 ## Testing
 
 1. Load the extension in Chrome
-2. Navigate to: `http://hbbtv-test.example.com/index.php?p=videoplayer&d=1&u=<dash-url>`
-3. Verify video plays and playState transitions are logged in console
+2. Open the public test page: https://rupambhattacharya.github.io/hbbtv-emulator-extension/
+   (append `?u=<DASH manifest URL>` to test a different stream)
+3. Verify video plays and playState transitions are logged on the page
 4. Check `window.__hbbtvEmulator` for debugging info
+
+For local testing without installing the extension, serve the repo root and
+open `manual-test/repro.html` — it loads `dist/inject.js` directly.

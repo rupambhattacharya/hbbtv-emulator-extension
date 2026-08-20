@@ -2,8 +2,8 @@
  * HbbTV Emulator - Popup UI
  */
 
-// UA strings are shaped so vendor feature detectors (e.g. example
-// hbbtv-feature-detection) can parse vendor/model/year out of them.
+// UA strings are shaped so HbbTV vendor feature detectors can parse
+// vendor/model/year out of them.
 var UA_PRESETS = {
   'samsung-tizen-2022': 'Mozilla/5.0 (SMART-TV; LINUX; Tizen 6.5) AppleWebKit/537.36 (KHTML, like Gecko) HbbTV/1.6.1 (+DRM+DL+PVR;Samsung;SmartTV2022;T-KTM2DEUC-1490.3;;) 85.0.4183.93/6.5 TV Safari/537.36 Chrome/85.0.4183.93',
   'lg-webos-2022': 'Mozilla/5.0 (Web0S; Linux/SmartTV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 HbbTV/1.5.1 (+DRM; LGE; OLED55C24LA; WEBOS6.3.2 03.34.95; W6_O22; DTV_W22O;)',
