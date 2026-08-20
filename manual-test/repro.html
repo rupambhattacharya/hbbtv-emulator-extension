@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>HbbTV Emulator repro — example videoplayer layout</title>
+  <style>
+    /* Mirrors hbbtv-test.example.com main.css + videoplayer css */
+    #oipf-objects, #video-container, #video-broadcast, #container {
+      left: 0; position: absolute; top: 0;
+    }
+    #oipf-objects { visibility: hidden; width: 0; height: 0; }
+    body { background: transparent no-repeat; color: white; margin: 0; padding: 0; position: fixed; font-family: Arial, sans-serif; }
+    #container { background: none; height: 720px; width: 1280px; }
+    #video-broadcast { width: 1280px; height: 720px; }
+    #debug { padding: 30px 64px; background-color: rgba(18, 23, 30, 0.9); }
+  </style>
+  <!-- The emulator, exactly as the extension injects it -->
+  <script src="../dist/inject.js"></script>
+</head>
+<body>
+  <div id="video-container">
+    <object id="video-broadcast" type="video/broadcast"></object>
+  </div>
+
+  <div id="container">
+    <div id="debug">
+      <h3>HbbTV Video Player (repro)</h3>
+      <ul id="info_list"></ul>
+    </div>
+  </div>
+
+  <script>
+    // Mirrors the test page's loadVideo() flow
+    var params = new URLSearchParams(location.search);
+    var videoUrl = params.get('u') ||
+      'https://s3-eu-west-1.amazonaws.com/example-video/Dash/mp4dash-multiperiod/2_SAMPLE_XX000000_20/2_SAMPLE_XX000000_20-800.mp4';
+    var videoType = /\.(mpd|dash)(\?|$)/i.test(videoUrl) ? 'application/dash+xml' : 'video/mp4';
+
+    function log(k, v) {
+      var li = document.createElement('li');
+      li.textContent = k + ' - ' + v;
+      document.getElementById('info_list').appendChild(li);
+    }
+
+    var container = document.getElementById('video-container');
+    while (container.firstChild) container.removeChild(container.firstChild);
+
+    var videoObj = document.createElement('object');
+    videoObj.setAttribute('type', videoType);
+    videoObj.setAttribute('id', 'video-broadcast');
+    container.appendChild(videoObj);
+
+    var video = document.getElementById('video-broadcast');
+    log('Video object created', 'type=' + videoType);
+    video.data = videoUrl;
+    video.onPlayStateChange = function () { log('playState', video.playState); };
+    try {
+      video.play(1);
+      log('Play called', 'success');
+    } catch (e) {
+      log('Play Error', e);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "hbbtv-emulator-extension",
+  "version": "1.0.0",
+  "description": "HbbTV Emulator Chrome Extension with DASH/HLS/MP4 video playback",
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "webpack": "^5.90.0",
+    "webpack-cli": "^5.1.4",
+    "copy-webpack-plugin": "^12.0.0"
+  },
+  "dependencies": {
+    "dashjs": "^4.7.4",
+    "hls.js": "^1.5.7"
+  }
+}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>HbbTV Emulator</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #333;
+      padding: 16px;
+      background: #f8f9fa;
+    }
+    h1 {
+      font-size: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    h1 .logo { font-size: 20px; }
+    .section {
+      margin-bottom: 14px;
+      padding: 10px;
+      background: #fff;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+    }
+    .section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .toggle-label { font-weight: 500; }
+    .toggle {
+      position: relative;
+      width: 40px;
+      height: 22px;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #ccc;
+      border-radius: 22px;
+      transition: 0.2s;
+    }
+    .toggle .slider:before {
+      content: "";
+      position: absolute;
+      width: 18px; height: 18px;
+      left: 2px; bottom: 2px;
+      background: #fff;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+    .toggle input:checked + .slider { background: #4CAF50; }
+    .toggle input:checked + .slider:before { transform: translateX(18px); }
+
+    select, input[type="text"] {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    select:focus, input[type="text"]:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+    .custom-ua {
+      margin-top: 6px;
+      display: none;
+    }
+    .custom-ua.visible { display: block; }
+
+    .key-map {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      font-size: 11px;
+    }
+    .key-map .key {
+      display: flex;
+      justify-content: space-between;
+      padding: 3px 6px;
+      background: #f0f0f0;
+      border-radius: 3px;
+    }
+    .key-map .key span:first-child { font-weight: 600; }
+    .key-map .key span:last-child { color: #666; }
+
+    .status {
+      font-size: 11px;
+      color: #666;
+      text-align: center;
+      margin-top: 8px;
+    }
+    .status.active { color: #4CAF50; }
+    .status.inactive { color: #f44336; }
+  </style>
+</head>
+<body>
+  <h1><span class="logo">📺</span> HbbTV Emulator</h1>
+
+  <div class="section">
+    <div class="toggle-row">
+      <span class="toggle-label">Emulation Enabled</span>
+      <label class="toggle">
+        <input type="checkbox" id="enableToggle" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">User-Agent</div>
+    <select id="uaPreset">
+      <option value="samsung-tizen-2022">Samsung Tizen 2022 (HbbTV 1.6.1)</option>
+      <option value="lg-webos-2022">LG WebOS 2022 (HbbTV 1.5.1)</option>
+      <option value="panasonic-2021">Panasonic 2021 (HbbTV 2.0.3)</option>
+      <option value="custom">Custom...</option>
+    </select>
+    <div class="custom-ua" id="customUaWrap">
+      <input type="text" id="customUa" placeholder="Enter custom User-Agent string">
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="toggle-row">
+      <span class="toggle-label">Debug Overlay</span>
+      <label class="toggle">
+        <input type="checkbox" id="debugToggle">
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Key Mapping (Keyboard → Remote)</div>
+    <div class="key-map">
+      <div class="key"><span>R</span><span>RED</span></div>
+      <div class="key"><span>G</span><span>GREEN</span></div>
+      <div class="key"><span>Y</span><span>YELLOW</span></div>
+      <div class="key"><span>B</span><span>BLUE</span></div>
+      <div class="key"><span>P</span><span>PLAY</span></div>
+      <div class="key"><span>S</span><span>STOP</span></div>
+      <div class="key"><span>Space</span><span>PAUSE</span></div>
+      <div class="key"><span>Bksp</span><span>BACK</span></div>
+      <div class="key"><span>Enter</span><span>OK</span></div>
+      <div class="key"><span>Arrows</span><span>NAV</span></div>
+      <div class="key"><span>0-9</span><span>NUM</span></div>
+    </div>
+  </div>
+
+  <div class="status" id="statusText">Active</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
