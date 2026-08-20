@@ -12,13 +12,20 @@ const DEFAULT_STATE = {
 
 let state = { ...DEFAULT_STATE };
 
-// Load state from storage on startup
-chrome.storage.local.get('hbbtvEmulatorState', (result) => {
-  if (result.hbbtvEmulatorState) {
-    state = { ...DEFAULT_STATE, ...result.hbbtvEmulatorState };
-  }
-  updateRules();
-});
+function loadStateAndApply() {
+  chrome.storage.local.get('hbbtvEmulatorState', (result) => {
+    if (result.hbbtvEmulatorState) {
+      state = { ...DEFAULT_STATE, ...result.hbbtvEmulatorState };
+    }
+    updateRules();
+  });
+}
+
+// Apply on service worker startup, fresh install, extension update/reload,
+// and browser startup — dynamic rules can be lost on any of these.
+loadStateAndApply();
+chrome.runtime.onInstalled.addListener(loadStateAndApply);
+chrome.runtime.onStartup.addListener(loadStateAndApply);
 
 // Listen for state changes from popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -119,6 +126,23 @@ function updateRules() {
     chrome.declarativeNetRequest.updateDynamicRules({
       removeRuleIds: existingIds,
       addRules: rules
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('[HbbTV Emulator] Failed to install rules:',
+          chrome.runtime.lastError.message);
+        setBadge('ERR', '#d90824');
+        return;
+      }
+      console.log('[HbbTV Emulator] Rules active:', rules.length,
+        '(enabled =', state.enabled + ')');
+      setBadge(state.enabled ? 'ON' : '', '#2cc46c');
     });
   });
+}
+
+// Badge on the toolbar icon reflects whether the header rules are applied,
+// so a silently-lost rule set is visible at a glance.
+function setBadge(text, color) {
+  chrome.action.setBadgeText({ text: text });
+  if (text) chrome.action.setBadgeBackgroundColor({ color: color });
 }
